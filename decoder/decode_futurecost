@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+import optparse
+import sys
+import models
+import math
+from collections import namedtuple,defaultdict
+
+optparser = optparse.OptionParser()
+optparser.add_option("-i", "--input", dest="input", default="data/input", help="File containing sentences to translate (default=data/input)")
+optparser.add_option("-t", "--translation-model", dest="tm", default="data/tm", help="File containing translation model (default=data/tm)")
+optparser.add_option("-l", "--language-model", dest="lm", default="data/lm", help="File containing ARPA-format language model (default=data/lm)")
+optparser.add_option("-n", "--num_sentences", dest="num_sents", default=sys.maxint, type="int", help="Number of sentences to decode (default=no limit)")
+optparser.add_option("-k", "--translations-per-phrase", dest="k", default=1, type="int", help="Limit on number of translations to consider per phrase (default=1)")
+optparser.add_option("-s", "--stack-size", dest="s", default=1, type="int", help="Maximum stack size (default=1)")
+optparser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,  help="Verbose mode (default=off)")
+optparser.add_option("-a", "--alpha", dest="alpha", type="float", default = 0.5) # 0 is the harshest and 1 is the most lenient #larger distance most penalized
+opts = optparser.parse_args()[0]
+
+tm = models.TM(opts.tm, opts.k)
+lm = models.LM(opts.lm)
+french = [tuple(line.strip().split()) for line in open(opts.input).readlines()[:opts.num_sents]]
+
+# tm should translate unknown words as-is with probability 1
+for word in set(sum(french,())):
+  if (word,) not in tm:
+    tm[(word,)] = [models.phrase(word, 0.0)]
+
+sys.stderr.write("Decoding %s...\n" % (opts.input,))
+cost = defaultdict(lambda : -sys.maxint)
+for f in french:
+  # The following code implements a monotone decoding
+  # algorithm (one that doesn't permute the target phrases).
+  # Hence all hypotheses in stacks[i] represent translations of 
+  # the first i words of the input sentence. You should generalize
+  # this so that they can represent translations of *any* i words.
+  for length in xrange(1,len(f)+1):
+    for start in xrange(0, len(f)+1-length):
+      end = start+length
+      cost[f[start:end]] = -sys.maxint
+      if f[start:end] in tm:
+        cost[f[start:end]] = max(tm[f[start:end]], key = lambda x: x.logprob).logprob
+      for l in xrange(start,end):
+        if f[start:l] in cost and f[l:end] in cost:
+          if cost[f[start:l]] + cost[f[l:end]] > cost[f[start:end]]:
+              cost[f[start:end]] = cost[f[start:l]]+cost[f[l:end]]
+
+  bitvec = [0 for _ in f]
+  hypothesis = namedtuple("hypothesis", "logprob, lm_state, predecessor, phrase, bitvec, prev, futurecost")
+  initial_hypothesis = hypothesis(0.0, lm.begin(), None, None, bitvec, 0, 0)
+  stacks = [{} for _ in f] + [{}]
+  stacks[0][lm.begin()] = initial_hypothesis
+  for i, stack in enumerate(stacks[:-1]):
+    for h in sorted(stack.itervalues(),key=lambda h: -h.logprob)[:opts.s]: # prune
+      for window in xrange(1,len(f)+1):
+        for j in xrange(0,len(f)-window+1):
+          end = j+window
+          bitvec = h.bitvec[:]
+          repeat = 0
+          #repeat = sum([1 for x in bitvec if x == 1])
+          #bitvec[j:end] = [1]*(end-j)
+          # for idx in xrange(j,end):
+          #   if bitvec[idx]:
+          #     repeat +=1
+          #   else:
+          #     bitvec[idx] = 1
+
+          s = -1
+          e = -1
+          futurecost = 0
+          for ind,ele in enumerate(bitvec):
+            if ele != 1:
+              if s!= -1:
+                s = ind
+              e = ind
+            else:
+              futurecost += cost[f[s:e+1]]
+              s = -1
+          if s != -1:
+            futurecost += cost[f[s:e+1]]
+              
+          if f[j:end] in tm and 1 not in bitvec[j:end]:
+            for idx in xrange(j,end):
+              bitvec[idx] = 1
+            for phrase in tm[f[j:end]]:
+              logprob = h.logprob + phrase.logprob
+              lm_state = h.lm_state
+              for word in phrase.english.split():
+                (lm_state, word_logprob) = lm.score(lm_state, word)
+                logprob += word_logprob
+              logprob += lm.end(lm_state) if 0 not in bitvec else 0.0
+              distance = abs(j - h.prev - 1)
+              logprob += math.log10(opts.alpha**distance)
+              new_hypothesis = hypothesis(logprob, lm_state, h, phrase, bitvec, end-1, futurecost)
+              # if lm_state not in stacks[i+window-repeat] or stacks[i+window-repeat][lm_state].logprob < logprob: # second case is recombination
+              #   stacks[i+window-repeat][lm_state] = new_hypothesis 
+              if lm_state not in stacks[i+window] or stacks[i+window][lm_state].logprob < logprob: # second case is recombination
+                stacks[i+window][lm_state] = new_hypothesis 
+  winner = max(stacks[-1].itervalues(), key=lambda h: h.logprob)
+  def extract_english(h): 
+    return "" if h.predecessor is None else "%s%s " % (extract_english(h.predecessor), h.phrase.english)
+  print extract_english(winner)
+
+  if opts.verbose:
+    def extract_tm_logprob(h):
+      return 0.0 if h.predecessor is None else h.phrase.logprob + extract_tm_logprob(h.predecessor)
+    tm_logprob = extract_tm_logprob(winner)
+    sys.stderr.write("LM = %f, TM = %f, Total = %f\n" % 
+      (winner.logprob - tm_logprob, tm_logprob, winner.logprob))

@@ -1,0 +1,99 @@
+RESULTS
+
+alpha = 0.7   dist<4 -k 100 -s 2000     -1348.92
+alpha = 0.3   dist<4  -k 100 -s 2000    -1353
+alpha = 0.2   -s 5000 					-1395.89
+
+alpha = 0.5 -k 100 -s 1500 dist > 4		-1390.362730
+
+alpha = 0.7 -k 100 -s 2000 dist > 4 no weight		- 1344 1 unaligned
+alpha 0.6 -k 100 -s 3000 no weight 				-1355.35 2 unaligned
+alpha 0.2 -k 100 -s 2000 wt 100  -1854.98 4 unaligned
+
+
+ ./decode_try2 -k 150 -s 2500 -a 0.7 -w 15 -d 4  -1633.98 8 unaligned
+
+  ./decode_try2 -k 100 -s 3000 -a 0.3 -w 5  -1554.856 1 unaligned
+
+ ./decode_try2 -k 100 -s 3000 -a 0.7 -d 5 -w 10  -1634.422 4 unaligned
+
+ ./decode_try2 -k 100 -s 2000 -a 0.7 -d 4  -1348.147158  1 unaligned
+
+ ./decode_try2 -k 100 -s 3000 -a 0.6 -d 4  -1348.99  1 unaligned
+
+ ./decode_try2 -k 100 -s 3000 -a 0.7 -d 4 -w 5 
+
+
+
+big01 -> ./decode_reordering_alpha -k 100 -s 2000 -a 0.7 > output_alpha  1343.328629    3 unaligned 
+big07 -> ./decode_reordering -k 50 -s 3000 > temp									-1323.178043 		4 unaligned
+big14 -> ./decode_reordering_alpha_dist -k 100 -s 2000 -a 0.7 -d 4 > output_dist   -1336.920402  4 unaligned
+big18 -> ./decode_futurecost -s 2000 -k 100 -a 0.7 > output_future    -1334.595007
+
+
+
+big07 -> ./decode_reordering -k 50 -s 3000 > temp updated      -1339.118311
+
+
+
+OVERNIGHT
+
+big01 -> ./decode_reordering_alpha -k 100 -s 3000 -a 0.7 > output_alpha 					-1334.595007
+big01 -> ./decode_reordering_alpha_dist -k 100 -s 5000 -a 0.7 -d 4 > output_dist_5000_1		-1327.4722
+big02 -> ./decode_futurecost -s 5000 -k 100 -a 0.7 > output_future_5000						-1334.595007
+big03 -> ./decode_futurecost -s 7000 -k 100 -a 0.7 > output_future_7000						-1334.595007
+big03 -> ./decode_futurecost -s 2000 -k 100 -a 0.3 > output_future_7000						-1402.94
+big04 -> ./decode_reordering_alpha_dist -k 100 -s 5000 -a 0.5 -d 4 > output_dist_5000   -1359.812462
+big04 -> ./decode_reordering_alpha_dist -k 100 -s 3000 -a 0.9 -d 4 > output_dist_5000    -1332.469519
+big05  -> ./decode_futurecost -s 10000 -k 100 -a 0.5 > output_future_10000					-1377.941151
+
+big05 -> ./decode_futurecost -s 2000 -k 20 -a 0.8 > output_future_10000 				-1322.426506
+
+big07 -> ./decode_reordering -k 100 -s 6000 > temp 										-1339.118311
+big07 -> ./decode_reordering_alpha_dist -k 100 -s 3000 -a 0.8 -d 6 > temp 				-1346.308
+big14  -> ./decode_reordering_alpha_dist -k 100 -s 2000 -a 0.7 -d 4 > output_dist       -1327.472254
+big14 -> ./decode_reordering_alpha_dist -k 100 -s 2000 -a 0.7 -d 6 > output_dist_6 		-1339.321194
+big14 -> ./decode_reordering_alpha_dist -k 100 -s 2000 -a 0.3 -d 4 > output_dist_6_1	 -1416.4859	
+big18 -> ./decode_futurecost -s 3000 -k 100 -a 0.7 > output_future_3000 				-1334.595007
+big18 -> ./decode_reordering_alpha_dist -k 100 -s 2000 -a 0.7 -d 6 > output_dist_6		-1339.321194
+
+big18 -> ./decode_reordering_alpha_dist -k 200 -s 2000 -a 0.9 -d 6 > output_dist_6      -1324.305620
+
+
+./decode_reordering_alpha_dist -k 100 -s 2000 -a 1 -d 4 > blah3					-1339.118311
+./decode_reordering_alpha_dist -k 100 -s 3000 -a 0.8 -d 4 > blah1 				-1333.216604
+./decode_reordering_alpha_dist -k 100 -s 3000 -a 0.8 -d 6 > blah4				-1346.308831
+./decode_reordering_alpha_dist -k 200 -s 3000 -a 0.8 -d 3 > blah2				-1331.666661
+./decode_futurecost -s 2000 -k 100 -a 0.8 > blah5								-1322.786706
+./decode_futurecost -s 2000 -k 100 -a 1 > blah6 								-1339.118311
+./decode_futurecost -s 2000 -k 200 -a 0.9 > blah7								-1330.628800
+
+
+
+anwesha@big03:~/MT/hw2/decoder> ./decode_futurecost_dist -s 2000 -k 100 -a 0.8 -d 4 > op_fut_dist_3   -1333.2166
+anwesha@big02:~/MT/hw2/decoder> ./decode_futurecost_dist -s 2000 -k 100 -a 0.9 -d 4 > op_fut_dist_2   -1332.469
+anwesha@big01:~/MT/hw2/decoder> ./decode_futurecost_dist -s 2000 -k 100 -a 0.9 -d 6 > op_fut_dist_1   -1324.305
+anwesha@big04:~/MT/hw2/decoder> ./decode_futurecost_dist -s 2000 -k 100 -a 0.8 -d 6 > op_fut_dist    -1346.308
+
+
+anwesha@big03:~/MT/hw2/decoder> ./decode_futurecost_dist -k 10 -a 0.002 -s 2000 -d 6 > blah1		-1454.501
+anwesha@big05:~/MT/hw2/decoder> ./decode_futurecost_dist -k 10 -s 75 -a 0.9 -d 6 > blah2			-1342.427789
+
+./decode_futurecost_dist -k 10 -s 200 -a 0.9 -d 6 > blah2										-1319.418774
+
+./decode_reordering_alpha_dist -k 20 -s 200 -a 0.9 -d 6 > blah4									-1323.8577
+
+anwesha@big03:~/MT/hw2/decoder> ./decode_futurecost_dist -k 10 -s 750 -a 0.9 -d 6 > blah5   -1324.156463
+ ./decode_futurecost_dist -k 20 -s 500 -a 0.9 -d 6 > blah3                                  -1322.976869
+ ./decode_futurecost_dist -k 25 -s 300 -a 0.85 -d 6 > blah3									-1333.904537
+
+
+./decode_futurecost_dist -k 10 -s 250 -a 0.9 -d 6 > blah2										-1319.16
+
+
+./try -k 10 -s 500 -d 5 -a 1 		-1256.1897
+
+./try -s 2000 -k 20 -a 1 -d 5 > blah3		-1249.199504
+
+./try -s 2000 -k 200 -a 1 -d 5 > blah2		-1249.494575
+				-k 100 						-1249.494575
